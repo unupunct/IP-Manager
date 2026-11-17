@@ -1,0 +1,37 @@
+# Build output
+bin/
+obj/
+build/
+artifacts/
+TestResults/
+*.user
+*.suo
+.vs/
+
+# Release binaries are published as GitHub Release assets, not committed
+release/*.exe
+release/*.msi
+release/*.wixpdb
+release/*.zip
+release/*.nupkg
+
+# Local data, logs and exports
+data/
+*.db
+*.db-shm
+*.db-wal
+logs/
+exports/
+*.log
+portable.flag
+
+# WiX extension cache
+.wix/
+
+# OS and editor noise
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+.vscode/
+*.swp

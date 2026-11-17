@@ -1,0 +1,201 @@
+<UserControl x:Class="IPManager.App.Views.NetworkMapView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svc="clr-namespace:IPManager.Services;assembly=IPManager.Services"
+             xmlns:core="clr-namespace:IPManager.Core;assembly=IPManager.Core">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource CardTight}" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding MapSummary}" FontSize="12" FontWeight="SemiBold" />
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Border Width="18" Height="3" Background="{DynamicResource SuccessBrush}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <TextBlock Text="Verified" Style="{StaticResource MutedText}" Margin="0,0,12,0" />
+                        <Border Width="18" Height="3" Background="{DynamicResource WarningBrush}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <TextBlock Text="Inferred" Style="{StaticResource MutedText}" Margin="0,0,12,0" />
+                        <Border Width="18" Height="3" Background="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <TextBlock Text="Unknown" Style="{StaticResource MutedText}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <ComboBox ItemsSource="{Binding Groupings}" SelectedItem="{Binding SelectedGrouping, Mode=TwoWay}"
+                              Width="170" Margin="0,0,6,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Content="Build map" Command="{Binding BuildCommand}" Style="{StaticResource AccentButton}" Padding="10,4" MinHeight="26" FontSize="11.5" Margin="0,0,6,0" />
+                    <Button Content="Fit" Command="{Binding FitToCanvasCommand}" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                    <Button Content="Save layout" Command="{Binding SaveLayoutCommand}" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                    <Button Content="Auto layout" Command="{Binding ResetLayoutCommand}" Style="{StaticResource SmallButton}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="290" />
+            </Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Margin="0,0,8,0" Padding="0">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="{DynamicResource AppBackgroundBrush}">
+                    <Grid x:Name="MapCanvas" Width="{Binding CanvasWidth}" Height="{Binding CanvasHeight}"
+                          Background="{DynamicResource AppBackgroundBrush}">
+                        <ItemsControl ItemsSource="{Binding Edges}" IsHitTestVisible="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Canvas.Left" Value="0" />
+                                    <Setter Property="Canvas.Top" Value="0" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Line X1="{Binding X1}" Y1="{Binding Y1}" X2="{Binding X2}" Y2="{Binding Y2}" ToolTip="{Binding Tooltip}">
+                                        <Line.Style>
+                                            <Style TargetType="Line">
+                                                <Setter Property="Stroke" Value="{DynamicResource TextSecondaryBrush}" />
+                                                <Setter Property="StrokeThickness" Value="1.3" />
+                                                <Setter Property="Opacity" Value="0.7" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Edge.Confidence}" Value="{x:Static svc:MapEdgeConfidence.Verified}">
+                                                        <Setter Property="Stroke" Value="{DynamicResource SuccessBrush}" />
+                                                        <Setter Property="StrokeThickness" Value="2.2" />
+                                                        <Setter Property="Opacity" Value="1" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Edge.Confidence}" Value="{x:Static svc:MapEdgeConfidence.Inferred}">
+                                                        <Setter Property="Stroke" Value="{DynamicResource WarningBrush}" />
+                                                        <Setter Property="StrokeDashArray" Value="3 2" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Edge.Confidence}" Value="{x:Static svc:MapEdgeConfidence.Unknown}">
+                                                        <Setter Property="Stroke" Value="{DynamicResource TextSecondaryBrush}" />
+                                                        <Setter Property="StrokeDashArray" Value="6 4" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Line.Style>
+                                    </Line>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <ItemsControl ItemsSource="{Binding Nodes}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="{Binding Width}" Height="{Binding Height}" CornerRadius="8" Cursor="Hand"
+                                            Background="{DynamicResource PanelAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                            ToolTip="{Binding Tooltip}"
+                                            PreviewMouseLeftButtonDown="OnNodeMouseDown"
+                                            MouseMove="OnNodeMouseMove"
+                                            MouseLeftButtonUp="OnNodeMouseUp">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                                        <Setter Property="BorderThickness" Value="2" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="5" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" CornerRadius="8,0,0,8">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="{DynamicResource TextSecondaryBrush}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Node.Kind}" Value="{x:Static svc:MapNodeKind.Internet}">
+                                                                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Node.Kind}" Value="{x:Static svc:MapNodeKind.Gateway}">
+                                                                <Setter Property="Background" Value="{DynamicResource InfoBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Node.Status}" Value="{x:Static core:DeviceStatus.Online}">
+                                                                <Setter Property="Background" Value="{DynamicResource SuccessBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Node.Status}" Value="{x:Static core:DeviceStatus.Offline}">
+                                                                <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Margin="8,5" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Title}" FontSize="11.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource Card}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Node details" Style="{StaticResource SectionHeader}" />
+                        <TextBlock Text="{Binding SelectedNode.Title, TargetNullValue='No node selected'}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding SelectedSummary}" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <Button Content="Open device" Command="{Binding OpenDeviceCommand}" Style="{StaticResource SmallButton}" Margin="0,8,0,0"
+                                HorizontalAlignment="Left" />
+                        <Separator />
+                        <TextBlock Text="Connections" Style="{StaticResource FieldLabel}" />
+                        <ItemsControl ItemsSource="{Binding Connections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource PanelAltBrush}" CornerRadius="5" Padding="6" Margin="0,2">
+                                        <StackPanel>
+                                            <TextBlock FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}">
+                                                <Run Text="{Binding Confidence, Mode=OneWay}" /><Run Text=" · " /><Run Text="{Binding Label, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding SourceId}" FontSize="9.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{Binding TargetId}" FontSize="9.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Separator />
+                        <TextBlock Text="How to read this map" Style="{StaticResource FieldLabel}" />
+                        <TextBlock Style="{StaticResource MutedText}" TextWrapping="Wrap" Text="{Binding Notes}" />
+                        <TextBlock Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,8,0,0"
+                                   Text="Drag a node to arrange the map, then choose Save layout. Layouts are stored in the local database." />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

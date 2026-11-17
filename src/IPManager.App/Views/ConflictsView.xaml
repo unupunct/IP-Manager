@@ -1,0 +1,125 @@
+<UserControl x:Class="IPManager.App.Views.ConflictsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource CardTight}" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox ItemsSource="{Binding StateOptions}" SelectedItem="{Binding SelectedState, Mode=TwoWay}" Margin="0,0,8,0">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Grid Grid.Column="1" Margin="0,0,8,0">
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="Filter address, MAC or evidence" IsHitTestVisible="False" Margin="11,0,0,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Visibility="{Binding SearchText, Converter={StaticResource EmptyToVisibility}}" />
+                </Grid>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="Clear" Command="{Binding ClearFilterCommand}" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                    <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                    <Button Content="Run analysis" Command="{Binding RunCommand}" Style="{StaticResource AccentButton}" Padding="10,4" MinHeight="26" FontSize="11.5" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource CardTight}" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding LastRunText}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,3,0,0"
+                               Text="Confirmed conflicts have strong live evidence (multiple MACs seen recently for one address). Suspected conflicts need review. Database duplicates are documentation errors and are not live network conflicts." />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Margin="0,0,16,0"><TextBlock Text="{Binding ConfirmedCount}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource DangerBrush}" /><TextBlock Text="confirmed" Style="{StaticResource MetricLabel}" /></StackPanel>
+                    <StackPanel Margin="0,0,16,0"><TextBlock Text="{Binding SuspectedCount}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}" /><TextBlock Text="suspected" Style="{StaticResource MetricLabel}" /></StackPanel>
+                    <StackPanel Margin="0,0,16,0"><TextBlock Text="{Binding ResolvedCount}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource SuccessBrush}" /><TextBlock Text="resolved" Style="{StaticResource MetricLabel}" /></StackPanel>
+                    <StackPanel><TextBlock Text="{Binding DatabaseDuplicateCount}" FontSize="20" FontWeight="SemiBold" /><TextBlock Text="database duplicates" Style="{StaticResource MetricLabel}" /></StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="400" />
+            </Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+                <DataGrid ItemsSource="{Binding VisibleConflicts}" SelectedItem="{Binding SelectedConflict, Mode=TwoWay}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="IP address" Binding="{Binding IpAddress}" Width="120" />
+                        <DataGridTextColumn Header="State" Binding="{Binding State}" Width="88">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                                    <Setter Property="Foreground" Value="{Binding State, Converter={StaticResource ConflictStateBrush}}" />
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Confidence" Binding="{Binding Confidence, StringFormat='{}{0}%'}" Width="82">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                                    <Setter Property="Foreground" Value="{Binding Confidence, Converter={StaticResource ConfidenceBrush}}" />
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Method" Binding="{Binding Method, Converter={StaticResource EnumText}}" Width="150" />
+                        <DataGridTextColumn Header="MAC addresses" Binding="{Binding MacAddresses}" Width="*" />
+                        <DataGridTextColumn Header="Last seen" Binding="{Binding LastSeenAt, Converter={StaticResource UtcToLocal}}" Width="135" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource Card}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="{Binding SelectionSummary}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" />
+                        <TextBlock Text="Evidence" Style="{StaticResource FieldLabel}" />
+                        <Border Background="{DynamicResource InputBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="6" Padding="8">
+                            <TextBlock Text="{Binding SelectedConflict.Evidence}" TextWrapping="Wrap" FontSize="11.5" />
+                        </Border>
+                        <TextBlock Text="Resolution note" Style="{StaticResource FieldLabel}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding ResolutionNote, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
+                                 Height="58" VerticalContentAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Content="Resolve" Command="{Binding ResolveCommand}" Style="{StaticResource SuccessButton}" Margin="0,0,6,0" />
+                            <Button Content="Reopen" Command="{Binding ReopenCommand}" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                            <Button Content="Address map" Command="{Binding OpenAddressMapCommand}" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                            <Button Content="Find device" Command="{Binding FindDeviceCommand}" Style="{StaticResource SmallButton}" />
+                        </StackPanel>
+                        <Separator />
+                        <TextBlock Text="MAC observations for this address" Style="{StaticResource FieldLabel}" />
+                        <DataGrid ItemsSource="{Binding Observations}" Height="220">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="MAC" Binding="{Binding MacAddress}" Width="*" />
+                                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="70" />
+                                <DataGridTextColumn Header="First seen" Binding="{Binding FirstSeen, Converter={StaticResource UtcToLocal}}" Width="110" />
+                                <DataGridTextColumn Header="Last seen" Binding="{Binding LastSeen, Converter={StaticResource UtcToLocal}}" Width="110" />
+                                <DataGridTextColumn Header="Count" Binding="{Binding ObservationCount}" Width="45" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,10,0,0"
+                                   Text="A stale ARP entry is not confirmation. The analyzer only confirms a live conflict when fresh observations show more than one MAC for the same address." />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

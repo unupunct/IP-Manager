@@ -1,0 +1,235 @@
+<UserControl x:Class="IPManager.App.Views.DhcpView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <TabControl SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+        <TabItem Header="Scopes &amp; reservations">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid Margin="0,0,8,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1.1*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="{Binding ScopeSummary}" Style="{StaticResource SectionHeader}" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="New scope" Command="{Binding NewScopeCommand}" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                                    <Button Content="Subnets" Command="{Binding OpenSubnetsCommand}" Style="{StaticResource SmallButton}" />
+                                </StackPanel>
+                            </Grid>
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope, Mode=TwoWay}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Scope" Binding="{Binding Name}" Width="*" />
+                                    <DataGridTextColumn Header="Provider" Binding="{Binding Provider}" Width="120" />
+                                    <DataGridTextColumn Header="Range" Binding="{Binding Range}" Width="190" />
+                                    <DataGridTextColumn Header="Lease" Binding="{Binding LeaseMinutes, StringFormat='{}{0} min'}" Width="75" />
+                                    <DataGridTextColumn Header="Enabled" Binding="{Binding Enabled, Converter={StaticResource BoolToText}}" Width="65" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,8,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Reservations in the selected scope" Style="{StaticResource SectionHeader}" />
+                                <Button Content="New reservation" Command="{Binding NewReservationCommand}" Style="{StaticResource SmallButton}" HorizontalAlignment="Right" />
+                            </Grid>
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding Reservations}" SelectedItem="{Binding SelectedReservation, Mode=TwoWay}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="IP address" Binding="{Binding IpAddress}" Width="130" />
+                                    <DataGridTextColumn Header="MAC" Binding="{Binding MacAddress}" Width="150" />
+                                    <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*" />
+                                    <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="100" />
+                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="180" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <ScrollViewer Grid.Column="1" Width="390" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}" Visibility="{Binding IsScopeEditorOpen, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding ScopeTitle}" Style="{StaticResource SectionHeader}" />
+                                    <Button Content="Close" Command="{Binding CancelScopeEditCommand}" Style="{StaticResource LinkButton}" HorizontalAlignment="Right" />
+                                </Grid>
+                                <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding EditorScope.Name, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Subnet" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <ComboBox ItemsSource="{Binding Subnets}" SelectedValue="{Binding EditorScope.SubnetId, Mode=TwoWay}"
+                                          SelectedValuePath="Id">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Cidr}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Text="Provider label" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <TextBox Text="{Binding EditorScope.Provider, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="DHCP server address" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <TextBox Text="{Binding EditorScope.ServerAddress, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Pool start / end" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding EditorScope.StartAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0" />
+                                    <TextBox Grid.Column="1" Text="{Binding EditorScope.EndAddress, UpdateSourceTrigger=PropertyChanged}" Margin="4,0,0,0" />
+                                </Grid>
+                                <TextBlock Text="Lease minutes" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <TextBox Text="{Binding EditorScope.LeaseMinutes, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Excluded addresses" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <TextBox Text="{Binding EditorScope.ExcludedAddresses, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Notes" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <TextBox Text="{Binding EditorScope.Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
+                                         Height="56" VerticalContentAlignment="Top" />
+                                <CheckBox Content="Scope enabled" IsChecked="{Binding EditorScope.Enabled}" Margin="0,8,0,0" />
+                                <TextBlock Text="{Binding ScopeWarnings}" Foreground="{DynamicResource WarningBrush}" FontSize="11.5" TextWrapping="Wrap" Margin="0,8,0,0"
+                                           Visibility="{Binding ScopeWarnings, Converter={StaticResource EmptyToVisibility}}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button Content="Save scope" Command="{Binding SaveScopeCommand}" Style="{StaticResource AccentButton}" Margin="0,0,6,0" />
+                                    <Button Content="Delete" Command="{Binding DeleteScopeCommand}" Style="{StaticResource DangerButton}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Visibility="{Binding IsReservationEditorOpen, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding ReservationTitle}" Style="{StaticResource SectionHeader}" />
+                                    <Button Content="Close" Command="{Binding CancelReservationEditCommand}" Style="{StaticResource LinkButton}" HorizontalAlignment="Right" />
+                                </Grid>
+                                <TextBlock Text="IP address" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding EditorReservation.IpAddress, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="MAC address" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <TextBox Text="{Binding EditorReservation.MacAddress, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Hostname" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <TextBox Text="{Binding EditorReservation.Hostname, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Description" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                                <TextBox Text="{Binding EditorReservation.Description, UpdateSourceTrigger=PropertyChanged}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button Content="Save reservation" Command="{Binding SaveReservationCommand}" Style="{StaticResource AccentButton}" Margin="0,0,6,0" />
+                                    <Button Content="Delete" Command="{Binding DeleteReservationCommand}" Style="{StaticResource DangerButton}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="Provider import">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="370" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Read-only provider snapshot" Style="{StaticResource SectionHeader}" />
+                        <TextBlock Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                   Text="IP Manager reads DHCP files or a Windows DHCP server snapshot. It never changes a router or DHCP server. Import copies the snapshot into the local documentation after confirmation." />
+                        <TextBlock Text="Provider" Style="{StaticResource FieldLabel}" />
+                        <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding SelectedProvider, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="12" />
+                                        <TextBlock Text="{Binding AccessText}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="{Binding SelectedProvider.Requirements}" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <TextBlock Text="File path or server" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                        <TextBox Text="{Binding ProviderPath, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="Options (JSON)" Style="{StaticResource FieldLabel}" Margin="0,8,0,4" />
+                        <TextBox Text="{Binding ProviderOptions, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="60" TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top" FontFamily="Consolas" FontSize="11" />
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Content="Save config" Command="{Binding SaveProviderCommand}" Style="{StaticResource SmallButton}" Margin="0,0,6,0" />
+                            <Button Content="Read snapshot" Command="{Binding ReadProviderCommand}" Style="{StaticResource AccentButton}" Padding="10,4" MinHeight="26" FontSize="11.5" Margin="0,0,6,0" />
+                            <Button Content="Import into docs" Command="{Binding ImportProviderCommand}" Style="{StaticResource SmallButton}" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding ProviderMessage}" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <TextBlock Text="Remote scopes" Style="{StaticResource SectionHeader}" />
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding RemoteScopes}" SelectedItem="{Binding SelectedRemoteScope, Mode=TwoWay}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                                    <DataGridTextColumn Header="Start" Binding="{Binding StartAddress}" Width="120" />
+                                    <DataGridTextColumn Header="End" Binding="{Binding EndAddress}" Width="120" />
+                                    <DataGridTextColumn Header="Provider" Binding="{Binding Provider}" Width="110" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                    <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,8,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <TextBlock Text="Leases in the selected remote scope" Style="{StaticResource SectionHeader}" />
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding RemoteLeases}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="IP address" Binding="{Binding IpAddress}" Width="130" />
+                                    <DataGridTextColumn Header="MAC" Binding="{Binding MacAddress}" Width="150" />
+                                    <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*" />
+                                    <DataGridTextColumn Header="Expires" Binding="{Binding ExpiresUtc, Converter={StaticResource UtcToLocal}}" Width="140" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="Local DHCP client">
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,6">
+                        <TextBlock Text="DHCP configuration reported by Windows for this computer" Style="{StaticResource SectionHeader}" />
+                        <Button Content="Read local DHCP client" Command="{Binding LoadLocalClientsCommand}" Style="{StaticResource SmallButton}" HorizontalAlignment="Right" />
+                    </Grid>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding LocalClients}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Adapter" Binding="{Binding Adapter}" Width="*" />
+                            <DataGridTextColumn Header="MAC" Binding="{Binding MacAddress}" Width="140" />
+                            <DataGridTextColumn Header="IP" Binding="{Binding IpAddress}" Width="125" />
+                            <DataGridTextColumn Header="DHCP" Binding="{Binding DhcpEnabled, Converter={StaticResource BoolToText}}" Width="60" />
+                            <DataGridTextColumn Header="Server" Binding="{Binding DhcpServer}" Width="125" />
+                            <DataGridTextColumn Header="Lease obtained" Binding="{Binding LeaseObtained}" Width="130" />
+                            <DataGridTextColumn Header="Lease expires" Binding="{Binding LeaseExpires}" Width="130" />
+                            <DataGridTextColumn Header="Gateway" Binding="{Binding DefaultGateway}" Width="120" />
+                            <DataGridTextColumn Header="DNS" Binding="{Binding DnsServers}" Width="160" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </TabItem>
+    </TabControl>
+</UserControl>

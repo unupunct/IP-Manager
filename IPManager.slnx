@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/IPManager.App/IPManager.App.csproj" />
+    <Project Path="src/IPManager.Core/IPManager.Core.csproj" />
+    <Project Path="src/IPManager.Infrastructure/IPManager.Infrastructure.csproj" />
+    <Project Path="src/IPManager.Network/IPManager.Network.csproj" />
+    <Project Path="src/IPManager.Services/IPManager.Services.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IPManager.Tests/IPManager.Tests.csproj" />
+  </Folder>
+</Solution>
